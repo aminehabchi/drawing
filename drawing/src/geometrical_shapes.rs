@@ -72,30 +72,53 @@ impl Line{
     }
 }
 
- pub fn draw_line(mut x0 :i32,mut y0 :i32,x1 :i32,y1 :i32,rgb :RGB, img: &mut Image) {
+fn point_pos(x: i32, y: i32, x0: i32, y0: i32, x1: i32, y1: i32) -> i32 {
+    // Signed area of the triangle; determines point orientation to line
+    (x1 - x0) * (y - y0) - (y1 - y0) * (x - x0)
+}
 
-        let dx = (x1 - x0).abs();
-        let dy = -(y1 - y0).abs();
-        let sx = if x0 < x1 { 1 } else { -1 };
-        let sy = if y0 < y1 { 1 } else { -1 };
-        let mut err = dx + dy;
+pub fn closest_to_zero(a: i32, b: i32, c: i32) -> i32 {
+    let values = [a, b, c];
+    *values.iter().min_by_key(|x| x.abs()).unwrap()
+}
 
-        let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
+pub fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, rgb: RGB, img: &mut Image) {
+    let mut move_x = x0;
+    let mut move_y = y0;
+    println!("{} {}    {} {}", x0, y0, x1, y1);
+    let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
+    let _ = img.set_pixel(move_x, move_y, color.clone());
 
-        loop {
-            img.set_pixel(x0, y0, color.clone()).unwrap_or(()); // ignore out-of-bounds
-            if x0 == x1 && y0 == y1 { break; }
-            let e2 = 2 * err;
-            if e2 >= dy {
-                err += dy;
-                x0 += sx;
-            }
-            if e2 <= dx {
-                err += dx;
-                y0 += sy;
-            }
+    let dir_x = if x0 < x1 { 1 } else { -1 };
+    let dir_y = if y0 < y1 { 1 } else { -1 };
+
+    while move_x != x1 || move_y != y1 {
+        // Calculate next possible positions
+        let next_x = if move_x != x1 { move_x + dir_x } else { move_x };
+        let next_y = if move_y != y1 { move_y + dir_y } else { move_y };
+
+        // Check all 3 possible moves
+        let pos1 = if move_x != x1 { point_pos(next_x, move_y, x0, y0, x1, y1) } else { i32::MAX };
+        let pos2 = if move_y != y1 { point_pos(move_x, next_y, x0, y0, x1, y1) } else { i32::MAX };
+        let pos3 = if move_x != x1 && move_y != y1 { point_pos(next_x, next_y, x0, y0, x1, y1) } else { i32::MAX };
+
+        let min = closest_to_zero(pos1, pos2, pos3);
+
+        if min == pos1 {
+            move_x = next_x;
+        } else if min == pos2 {
+            move_y = next_y;
+        } else if min == pos3 {
+            move_x = next_x;
+            move_y = next_y;
+        } else {
+            // If we can't move in any direction, break to avoid infinite loop
+            break;
         }
+
+        let _ = img.set_pixel(move_x, move_y, color.clone());
     }
+}
 
 /**************************************************/
 
