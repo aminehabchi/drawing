@@ -1,7 +1,7 @@
 mod geometrical_shapes;
 
 use geometrical_shapes as gs;
-// use gs::{Displayable, Drawable};
+use gs::{Drawable};
 use raster::{Color, Image};
 
 fn main() {
@@ -35,3 +35,14 @@ fn main() {
 //         }
 //     }
 // }
+
+
+
+
+impl Drawable for gs::Point {
+    fn draw(&self, img: &mut Image) {
+        let rgb=gs::RGB::new();
+        let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
+        img.set_pixel(self.x, self.y, color.clone()).unwrap_or(());
+    }
+}

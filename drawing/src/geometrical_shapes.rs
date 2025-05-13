@@ -47,12 +47,6 @@ impl Point {
             y: random_between_0_and(height),
         }
     }
-
-    pub fn draw(&self, img: &mut Image) {
-        let rgb=RGB::new();
-        let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
-        img.set_pixel(self.x, self.y, color.clone()).unwrap_or(());
-    }
 }
 /**************************************************/
 #[derive(Debug)]
@@ -217,4 +211,8 @@ impl Rectangle{
             },
         }
     }
+}
+
+pub trait Drawable {
+    fn draw(&self, img : &mut Image);
 }
