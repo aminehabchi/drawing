@@ -29,7 +29,7 @@ The library includes implementations for the following shapes:
 
 ![Line Example](./art/lines.png)
 
-![Line Example](./art/1milion.png)
+![Line Example](./art/1milionLine.png)
 
 **Lines**: Connect two points with a line-drawing algorithm that ensures smooth lines are drawn between any two arbitrary points, handling all edge cases.
 
@@ -68,7 +68,3 @@ This library can be used for:
 
 - `raster` - For image manipulation and saving
 - `rand` - For random number generation
-
-## License
-
-MIT
