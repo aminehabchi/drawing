@@ -25,6 +25,18 @@ impl RGB{
     }
 }
 
+/**************************************************/
+pub fn fill_image_with_color(image: &mut Image) {
+
+    let rgb=RGB::new();
+    let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
+
+    for y in 0..image.height {
+        for x in 0..image.width {
+            image.set_pixel(x, y, color.clone()).unwrap();
+        }
+    }
+}
 
 /**************************************************/
 #[derive(Debug,Clone)]
@@ -85,7 +97,6 @@ pub fn closest_to_zero(a: i32, b: i32, c: i32) -> i32 {
 pub fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, rgb: RGB, img: &mut Image) {
     let mut move_x = x0;
     let mut move_y = y0;
-    println!("{} {}    {} {}", x0, y0, x1, y1);
     let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
     let _ = img.set_pixel(move_x, move_y, color.clone());
 
@@ -128,40 +139,58 @@ pub struct Circle {
     pub radius: usize,
 }
 
+fn distance(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 {
+    ((x2 - x1).powi(2) + (y2 - y1).powi(2)).sqrt()
+}
+
+fn closest_point(r: i32, x: i32, y: i32, cx: i32, cy: i32) -> (i32, i32) {
+    let a = distance(cx as f64, cy as f64, x as f64+1.0, y as f64);
+    let b = distance(cx as f64, cy as f64, x as f64, y as f64+1.0);
+    let c = distance(cx as f64, cy as f64, x as f64+1.0, y as f64+1.0);
+    
+    // Calculate the difference between each distance and the radius
+    let diff_a = (a - r as f64).abs();
+    let diff_b = (b - r as f64).abs();
+    let diff_c = (c - r as f64).abs();
+    
+    // Return the point with the smallest difference
+    if diff_a <= diff_b && diff_a <= diff_c {
+        (x + 1, y)
+    } else if diff_b <= diff_a && diff_b <= diff_c {
+        (x, y + 1)
+    } else {
+        (x + 1, y + 1)
+    }
+}
+
+
 impl Circle {
     pub fn draw(&self, img: &mut Image) {
-        let cx = self.center.x;
-        let cy = self.center.y;
-        let r = self.radius as i32;
-
-        let mut x = 0;
-        let mut y = r;
-        let mut d = 1 - r;
-
         let rgb=RGB::new();
         let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
 
-        // Draw symmetric points
-        fn draw_circle_points(img: &mut Image, cx: i32, cy: i32, x: i32, y: i32, color: Color) {
-            let _ = img.set_pixel(cx + x, cy + y, color.clone());
-            let _ = img.set_pixel(cx - x, cy + y, color.clone());
-            let _ = img.set_pixel(cx + x, cy - y, color.clone());
-            let _ = img.set_pixel(cx - x, cy - y, color.clone());
-            let _ = img.set_pixel(cx + y, cy + x, color.clone());
-            let _ = img.set_pixel(cx - y, cy + x, color.clone());
-            let _ = img.set_pixel(cx + y, cy - x, color.clone());
-            let _ = img.set_pixel(cx - y, cy - x, color.clone());
-        }
+        let cx = self.center.x;
+        let cy = self.center.y;
+        let mut r = self.radius as i32;
 
-        while x <= y {
-            draw_circle_points(img, cx, cy, x, y, color.clone());
-            x += 1;
-            if d < 0 {
-                d += 2 * x + 1;
-            } else {
-                y -= 1;
-                d += 2 * (x - y) + 1;
-            }
+        let mut x = cx;
+        let mut y = cy-r;
+
+        while y <= cy && r>0 {
+
+          let  (new_x,new_y)= closest_point(r,x,y,cx,cy);
+
+          if new_x==x && new_y==y{
+            break;
+          }
+          x=new_x;
+          y=new_y;
+       
+
+        let _ = img.set_pixel(x, y, color.clone()).unwrap_or(());
+        let _ = img.set_pixel(x,cy + (cy - y), color.clone()).unwrap_or(());
+        let _ = img.set_pixel(2 * cx - x, y, color.clone()).unwrap_or(());
+        let _ = img.set_pixel(2 * cx - x, cy + (cy - y),  color.clone()).unwrap_or(());
         }
 
     }
