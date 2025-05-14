@@ -178,13 +178,13 @@ impl Circle {
 
         while y <= cy && r>0 {
 
-          let  (new_x,new_y)= closest_point(r,x,y,cx,cy);
+        let  (new_x,new_y)= closest_point(r,x,y,cx,cy);
 
-          if new_x==x && new_y==y{
-            break;
-          }
-          x=new_x;
-          y=new_y;
+        if new_x==x && new_y==y{
+         break;
+        }
+        x=new_x;
+        y=new_y;
        
 
         let _ = img.set_pixel(x, y, color.clone()).unwrap_or(());
@@ -236,31 +236,23 @@ impl Triangle{
 pub struct Rectangle{
     pub p1 :Point,
     pub p2 :Point,
-    pub p3 :Point,
-    pub p4 :Point,
 }
 
 impl Rectangle{
     pub fn draw(&self ,img :&mut Image){
         let rgb=RGB::new();
-        draw_line(self.p1.x,self.p1.y,self.p2.x,self.p2.y,rgb.clone(),img);
-        draw_line(self.p2.x,self.p2.y,self.p3.x,self.p3.y,rgb.clone(),img);
-        draw_line(self.p3.x,self.p3.y,self.p4.x,self.p4.y,rgb.clone(),img);
-        draw_line(self.p1.x,self.p1.y,self.p4.x,self.p4.y,rgb.clone(),img);
+        
+        draw_line(self.p2.x,self.p2.y,self.p1.x,self.p2.y,rgb.clone(),img);
+        draw_line(self.p2.x,self.p1.y*2,self.p1.x,self.p1.y*2,rgb.clone(),img);
+
+        draw_line(self.p2.x,self.p1.y*2,self.p2.x,self.p2.y,rgb.clone(),img);
+        draw_line(self.p1.x,self.p1.y*2,self.p1.x,self.p2.y,rgb.clone(),img);
     }
 
     pub fn new(p1 :&Point, p2 :&Point)->Self{
         Rectangle{
             p1:p1.clone(),
-            p2:Point{
-                x:p1.x,
-                y:p2.y,
-            },
-            p3:p2.clone(),
-            p4:Point{
-                x:p2.x,
-                y:p1.y,
-            },
+            p2:p2.clone(),
         }
     }
 }
