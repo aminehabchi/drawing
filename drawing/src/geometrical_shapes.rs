@@ -1,30 +1,27 @@
 use raster::{Image,Color};
 use rand::Rng;
 
+pub trait Drawable {
+    fn draw(&self, img : &mut Image);
 
+    fn color(&self) -> Color {
+        Color {
+            r: random_between_0_and(255) as  u8,
+            g: random_between_0_and(255) as  u8,
+            b: random_between_0_and(255) as  u8,
+            a: 255,
+        }
+    }
+}
+
+pub trait Displayable {
+  fn display(&mut self, x: i32, y: i32, color: Color);
+}
 
 fn random_between_0_and(max: i32) -> i32 {
     let mut rng = rand::thread_rng();
     rng.gen_range(0..max)
 }
-
-#[derive(Debug,Clone)]
-pub struct RGB{
-   pub red   :u8,
-   pub green :u8,
-   pub blue  :u8,
-}
-
-impl RGB{
-    pub fn new()->RGB{
-        RGB{
-            red  :random_between_0_and(255) as  u8,
-            blue :random_between_0_and(255) as  u8,
-            green:random_between_0_and(255) as  u8,
-        }
-    }
-}
-
 /**************************************************/
 pub fn fill_image_with_color(image: &mut Image) {
 
@@ -65,21 +62,13 @@ impl Point {
 pub struct Line{
     pub p1    :Point,
     pub p2    :Point,
-    pub color :RGB,
 }
 
 impl Line{
-    pub fn draw(&self, img: &mut Image) {
-        let rgb=RGB::new();
-        draw_line(self.p1.x,self.p1.y,self.p2.x,self.p2.y,rgb.clone(),img);
-    }
-
-
     pub fn random(width :i32, height :i32)->Self{
         Line{
             p1:    Point::random(width,height),
             p2:    Point::random(width,height),
-            color: RGB::new(),
         }
     }
 }
@@ -94,10 +83,9 @@ pub fn closest_to_zero(a: i32, b: i32, c: i32) -> i32 {
     *values.iter().min_by_key(|x| x.abs()).unwrap()
 }
 
-pub fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, rgb: RGB, img: &mut Image) {
+pub fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, color: Color, img: &mut Image) {
     let mut move_x = x0;
     let mut move_y = y0;
-    let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
     let _ = img.set_pixel(move_x, move_y, color.clone());
 
     let dir_x = if x0 < x1 { 1 } else { -1 };
@@ -143,7 +131,7 @@ fn distance(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 {
     ((x2 - x1).powi(2) + (y2 - y1).powi(2)).sqrt()
 }
 
-fn closest_point(r: i32, x: i32, y: i32, cx: i32, cy: i32) -> (i32, i32) {
+pub fn closest_point(r: i32, x: i32, y: i32, cx: i32, cy: i32) -> (i32, i32) {
     let a = distance(cx as f64, cy as f64, x as f64+1.0, y as f64);
     let b = distance(cx as f64, cy as f64, x as f64, y as f64+1.0);
     let c = distance(cx as f64, cy as f64, x as f64+1.0, y as f64+1.0);
@@ -165,36 +153,6 @@ fn closest_point(r: i32, x: i32, y: i32, cx: i32, cy: i32) -> (i32, i32) {
 
 
 impl Circle {
-    pub fn draw(&self, img: &mut Image) {
-        let rgb=RGB::new();
-        let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
-
-        let cx = self.center.x;
-        let cy = self.center.y;
-        let mut r = self.radius as i32;
-
-        let mut x = cx;
-        let mut y = cy-r;
-
-        while y <= cy && r>0 {
-
-        let  (new_x,new_y)= closest_point(r,x,y,cx,cy);
-
-        if new_x==x && new_y==y{
-         break;
-        }
-        x=new_x;
-        y=new_y;
-       
-
-        let _ = img.set_pixel(x, y, color.clone()).unwrap_or(());
-        let _ = img.set_pixel(x,cy + (cy - y), color.clone()).unwrap_or(());
-        let _ = img.set_pixel(2 * cx - x, y, color.clone()).unwrap_or(());
-        let _ = img.set_pixel(2 * cx - x, cy + (cy - y),  color.clone()).unwrap_or(());
-        }
-
-    }
-
     pub fn random(width: i32, height: i32) -> Self {
         Circle {
             center: Point {
@@ -223,13 +181,6 @@ impl Triangle{
             p3:p3.clone(),
          }
     }
-
-    pub fn draw(&self, img: &mut Image) {
-        let rgb=RGB::new();
-        draw_line(self.p1.x,self.p1.y,self.p2.x,self.p2.y,rgb.clone(),img);
-        draw_line(self.p2.x,self.p2.y,self.p3.x,self.p3.y,rgb.clone(),img);
-        draw_line(self.p3.x,self.p3.y,self.p1.x,self.p1.y,rgb.clone(),img);
-    }
 }
 
 /**************************************************/
@@ -239,24 +190,10 @@ pub struct Rectangle{
 }
 
 impl Rectangle{
-    pub fn draw(&self ,img :&mut Image){
-        let rgb=RGB::new();
-        
-        draw_line(self.p2.x,self.p2.y,self.p1.x,self.p2.y,rgb.clone(),img);
-        draw_line(self.p2.x,self.p1.y*2,self.p1.x,self.p1.y*2,rgb.clone(),img);
-
-        draw_line(self.p2.x,self.p1.y*2,self.p2.x,self.p2.y,rgb.clone(),img);
-        draw_line(self.p1.x,self.p1.y*2,self.p1.x,self.p2.y,rgb.clone(),img);
-    }
-
     pub fn new(p1 :&Point, p2 :&Point)->Self{
         Rectangle{
             p1:p1.clone(),
             p2:p2.clone(),
         }
     }
-}
-
-pub trait Drawable {
-    fn draw(&self, img : &mut Image);
 }
