@@ -23,17 +23,17 @@ fn random_between_0_and(max: i32) -> i32 {
     rng.gen_range(0..max)
 }
 /**************************************************/
-pub fn fill_image_with_color(image: &mut Image) {
+// pub fn fill_image_with_color(image: &mut Image) {
 
-    let rgb=RGB::new();
-    let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
+//     let rgb=RGB::new();
+//     let color = Color::rgb(rgb.red, rgb.green, rgb.blue);
 
-    for y in 0..image.height {
-        for x in 0..image.width {
-            image.set_pixel(x, y, color.clone()).unwrap();
-        }
-    }
-}
+//     for y in 0..image.height {
+//         for x in 0..image.width {
+//             image.set_pixel(x, y, color.clone()).unwrap();
+//         }
+//     }
+// }
 
 /**************************************************/
 #[derive(Debug,Clone)]
@@ -115,7 +115,7 @@ pub fn draw_line(x0: i32, y0: i32, x1: i32, y1: i32, color: Color, img: &mut Ima
             break;
         }
 
-        let _ = img.set_pixel(move_x, move_y, color.clone());
+        img.display(move_x, move_y, color.clone());
     }
 }
 
@@ -195,5 +195,73 @@ impl Rectangle{
             p1:p1.clone(),
             p2:p2.clone(),
         }
+    }
+}
+
+
+// --------------------------------------------- drawable --------------------
+impl Drawable for Point {
+    fn draw(&self, img: &mut Image) {
+        let color = self.color();
+        img.display(self.x, self.y, color);
+    }
+}
+
+impl Drawable for Line {
+    fn draw(&self, img: &mut Image) {
+        let rgb = Color{r: 255, g: 255, b:255,a:255};
+        draw_line(self.p1.x, self.p1.y, self.p2.x, self.p2.y, rgb.clone(), img);
+    }
+}
+
+impl Drawable for Circle {
+    fn draw(&self, img: &mut Image) {
+        let color = self.color();
+
+        let cx = self.center.x;
+        let cy = self.center.y;
+        let mut r = self.radius as i32;
+
+        let mut x = cx;
+        let mut y = cy - r;
+
+        while y <= cy && r > 0 {
+            let (new_x, new_y) = closest_point(r, x, y, cx, cy);
+
+            if new_x == x && new_y == y {
+                break;
+            }
+            x = new_x;
+            y = new_y;
+
+             img.display(x, y, color.clone());
+             img.display(x, cy + (cy - y), color.clone());
+             img.display(2 * cx - x, y, color.clone());
+             img.display(2 * cx - x, cy + (cy - y), color.clone());
+        }
+    }
+}
+
+impl Drawable for Triangle {
+    fn draw(&self, img : &mut Image) {
+        // let rgb= self.color();
+        let rgb = Color{r: 255, g: 255, b:255,a:255};
+        draw_line(self.p1.x,self.p1.y,self.p2.x,self.p2.y,rgb.clone(),img);
+        draw_line(self.p2.x,self.p2.y,self.p3.x,self.p3.y,rgb.clone(),img);
+        draw_line(self.p3.x,self.p3.y,self.p1.x,self.p1.y,rgb.clone(),img);
+    }
+}
+
+impl Drawable for Rectangle {
+    fn draw(&self, img : &mut Image) {
+        // let rgb= self.color();
+                let rgb = Color{r: 255, g: 255, b:255,a:255};
+
+        
+        draw_line(self.p2.x,self.p2.y,self.p1.x,self.p2.y,rgb.clone(),img);
+        draw_line(self.p2.x,self.p1.y*2,self.p1.x,self.p1.y*2,rgb.clone(),img);
+
+        draw_line(self.p2.x,self.p1.y*2,self.p2.x,self.p2.y,rgb.clone(),img);
+        draw_line(self.p1.x,self.p1.y*2,self.p1.x,self.p2.y,rgb.clone(),img);
     }
 }
